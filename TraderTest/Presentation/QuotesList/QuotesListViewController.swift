@@ -17,8 +17,8 @@ class QuotesListViewController: UIViewController {
     private var currentItems: [QuoteCellViewModel] = []
     private let refreshControl = UIRefreshControl()
 
-    init(api: TraderAPIProtocol, socket: TraderWebSocketClientProtocol) {
-        self.viewModel = QuotesListViewModel(api: api, socketManager: socket)
+    init(viewModel: QuotesListViewModel) {
+        self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
     
