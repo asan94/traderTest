@@ -12,12 +12,6 @@ protocol TraderAPIProtocol: AnyObject {
 }
 
 class TraderAPI: BaseAPI, TraderAPIProtocol {
-
-    var responseQueue:DispatchQueue?
-    convenience init(responseQueue:DispatchQueue?){
-        self.init()
-        self.responseQueue = responseQueue
-    }
     
     private func request(path:Path, id:String? = nil, method:HTTPMethod, queryItems:[URLQueryItem]? = nil) -> URLRequest? {
         let path = stringFor(path: path, id: id)

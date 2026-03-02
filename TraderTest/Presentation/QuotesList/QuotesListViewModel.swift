@@ -7,20 +7,24 @@
 
 import UIKit
 
-final class QuotesListViewModel: TraderWebSocketClientDelegate {
+final class QuotesListViewModel {
     
     struct State: Equatable {
         var items: [QuoteCellViewModel] = []
         var isLoading: Bool = false
         var errorText: String? = nil
     }
-    
+    private weak var router: QuotesRoutingLogic?
     private let api: TraderAPIProtocol
     private var socketManager: TraderWebSocketClientProtocol
     private(set) var state = State() {
-        didSet { onStateChange?(state) }
+        didSet {
+            DispatchQueue.main.async {
+                self.onStateChange?(self.state)
+            }
+        }
     }
-    
+
     var onStateChange: ((State) -> Void)?
     var items: Set<QuoteDM> = []
     private var tickers: [String] = []
@@ -29,6 +33,10 @@ final class QuotesListViewModel: TraderWebSocketClientDelegate {
         self.api = api
         self.socketManager = socketManager
         self.socketManager.delegate = self
+    }
+    
+    func setRouter(router: QuotesRoutingLogic) {
+        self.router = router
     }
     
     func connectSocket() {
@@ -60,7 +68,7 @@ final class QuotesListViewModel: TraderWebSocketClientDelegate {
     func refresh() {
         fetchData()
     }
-    
+
     func subscribeTickers() {
         self.socketManager.subscribeQuotes(tickers: tickers)
     }
@@ -68,6 +76,15 @@ final class QuotesListViewModel: TraderWebSocketClientDelegate {
     func didConnect() {
         self.socketManager.subscribeQuotes(tickers: self.tickers)
     }
+
+    func didSelect(ticker: String) {
+        if let quotDM = items.first(where: { $0.ticker == ticker }) {
+            router?.openDetails(quotDM: quotDM)
+        }
+    }
+    
+}
+extension QuotesListViewModel: TraderWebSocketClientDelegate {
     
     func didReceiveQuotes(_ quotes: QuoteDM) {
         let lastQuotes = items.first(where: { $0.ticker == quotes.ticker })
@@ -91,9 +108,7 @@ final class QuotesListViewModel: TraderWebSocketClientDelegate {
             }
             return QuoteCellViewModel(quote: quoteDM, highlight: highlight)
         }
-        DispatchQueue.main.async {
-            self.state = .init(items: newViewModels, isLoading: false, errorText: nil)
-        }
+        self.state = .init(items: newViewModels, isLoading: false, errorText: nil)
     }
     
     func didDisconnect(reason: String?) {
@@ -104,4 +119,3 @@ final class QuotesListViewModel: TraderWebSocketClientDelegate {
         self.state = .init(items: state.items, isLoading: false, errorText: error)
     }
 }
-

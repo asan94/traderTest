@@ -7,6 +7,10 @@
 
 import UIKit
 
+protocol QuotesRoutingLogic: AnyObject {
+    func openDetails(quotDM: QuoteDM)
+}
+
 class QuotesListViewController: UIViewController {
     
     let viewModel: QuotesListViewModel
@@ -20,6 +24,7 @@ class QuotesListViewController: UIViewController {
     init(viewModel: QuotesListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        self.viewModel.setRouter(router: self)
     }
     
     required init?(coder: NSCoder) {
@@ -83,6 +88,7 @@ class QuotesListViewController: UIViewController {
     func setupTableView() {
         dataSource = makeDataSource()
         theview.tableView.dataSource = dataSource
+        theview.tableView.delegate = self
         theview.tableView.refreshControl?.addTarget(self, action: #selector(onPullToRefresh(_:)), for: .valueChanged)
     }
     
@@ -111,4 +117,15 @@ class QuotesListViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
 
+}
+extension QuotesListViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let viewModel = currentItems[indexPath.row]
+        self.viewModel.didSelect(ticker: viewModel.ticker)
+    }
+}
+extension QuotesListViewController: QuotesRoutingLogic {
+    func openDetails(quotDM: QuoteDM) {
+        
+    }
 }
