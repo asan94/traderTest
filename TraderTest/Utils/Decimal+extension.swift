@@ -26,7 +26,8 @@ extension Decimal {
 
     nonisolated func asString(maxFractionDigits: Int = 6) -> String {
         let nf = NumberFormatter()
-        nf.locale = Locale(identifier: "ru_RU")
+        nf.locale = Locale(identifier: "en_US_POSIX")
+        nf.decimalSeparator = "."
         nf.numberStyle = .decimal
         nf.minimumFractionDigits = 0
         nf.maximumFractionDigits = maxFractionDigits
