@@ -9,6 +9,7 @@ import Foundation
 
 protocol TraderAPIProtocol: AnyObject {
     func getTopQuotes(type: String, exchange: String, gainers: Int?, limit: Int?, completion: @escaping (NetworkResult<TickersDM>) -> Void)
+    func getTopQuotes(type: String, exchange: String, gainers: Int?, limit: Int?) async -> NetworkResult<TickersDM>
 }
 
 class TraderAPI: BaseAPI, TraderAPIProtocol {
@@ -65,6 +66,27 @@ class TraderAPI: BaseAPI, TraderAPIProtocol {
                 completion(.failure(error))
             }
         }
+    }
+    
+    //Use async await
+    func getTopQuotes(type: String, exchange: String, gainers: Int? = 0, limit: Int? = 30) async -> NetworkResult<TickersDM>{
+        let params: [String: Any] = [
+          "cmd": "getTopSecurities",
+          "params": [
+            "type": type,
+            "exchange": exchange,
+            "gainers": gainers!,
+            "limit": limit!
+          ]
+        ]
+        
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: params, options: []), let jsonString = String(data: jsonData, encoding: .utf8),
+           let encodedQ = jsonString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return .failure(URLError(.badURL))
+        }
+        let body = "q=\(encodedQ)".data(using: .utf8)
+        guard let request = self.request(path: .quotes, method: .POST, body: body) else { return .failure(URLError(.badURL)) }
+        return await self.perform(request, decodeType: TickersDM.self)
     }
     
 }

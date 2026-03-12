@@ -6,7 +6,7 @@
 //
 
 import UIKit
-
+import SwiftUI
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
@@ -19,7 +19,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: windowScene)
-        let quoteListVC = getInitialViewController()
+        let useUIKit = false
+        let quoteListVC = getInitialViewController(useUIKit: useUIKit)
         let navVC = UINavigationController(rootViewController: quoteListVC)
         navVC.navigationBar.isHidden = true
         window.rootViewController = navVC
@@ -27,13 +28,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.makeKeyAndVisible()
     }
 
-    func getInitialViewController() -> UIViewController {
+    func getInitialViewController(useUIKit: Bool = true) -> UIViewController {
         let socketManager = TraderWebSocketClient()
         socketManager.isLoggingEnabled = false
         let api = TraderAPI()
-        let viewModel = QuotesListViewModel(api: api, socketManager: socketManager)
-        let quoteListVC = QuotesListViewController(viewModel: viewModel)
-        return quoteListVC
+
+        if useUIKit {
+            let viewModel = QuotesListViewModel(api: api, socketManager: socketManager)
+            return QuotesListViewController(viewModel: viewModel)
+        } else {
+            let vm = QuotesScreenViewModel(api: api, socketManager: socketManager)
+            let vc = UIHostingController(rootView: QuotesListScreen(viewModel: vm))
+            return vc
+        }
     }
     
     func sceneDidDisconnect(_ scene: UIScene) {
