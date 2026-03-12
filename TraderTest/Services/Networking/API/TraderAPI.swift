@@ -25,6 +25,10 @@ class TraderAPI: BaseAPI, TraderAPIProtocol {
         return super.request(for: path, method: method, body: body, queryItems: query) as URLRequest?
     }
     
+    func request(path:Path, id:String? = nil, method:HTTPMethod, body:Data? = nil, query:[URLQueryItem]? = nil) -> URLRequest? {
+        let path = stringFor(path: path, id: id)
+        return super.request(for: path, method: method, body: body, queryItems: query) as URLRequest?
+    }
     //Add when we user id parametr
     private func stringFor(path:Path, id:String? = nil) -> String {
         let idmask = "{ID}"
@@ -36,24 +40,26 @@ class TraderAPI: BaseAPI, TraderAPIProtocol {
     
     //Use callbacks
     func getTopQuotes(type: String, exchange: String, gainers: Int? = 0, limit: Int? = 30, completion: @escaping (NetworkResult<TickersDM>) -> Void) {
-        struct Model: Codable {
-            let q: Securities
-            struct Securities: Codable {
-                let cmd: String
-                let params: [Params]
-                struct Params: Codable {
-                    let type: String
-                    let exchange: String
-                    let gainers: Int?
-                    let limit: Int?
-                }
-            }
+        let params: [String: Any] = [
+          "cmd": "getTopSecurities",
+          "params": [
+            "type": type,
+            "exchange": exchange,
+            "gainers": gainers!,
+            "limit": limit!
+          ]
+        ]
+        
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: params, options: []), let jsonString = String(data: jsonData, encoding: .utf8),
+           let encodedQ = jsonString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return
         }
-        let model = Model(q: Model.Securities(cmd: "getTopSecurities", params: [Model.Securities.Params(type: type, exchange: exchange, gainers: gainers, limit: limit)]))
-        guard let request = self.request(path: .quotes, method: .POST, body: model) else { return }
+        let body = "q=\(encodedQ)".data(using: .utf8)
+        guard let request = self.request(path: .quotes, method: .POST, body: body) else { return }
         self.perform(request) { result in
             switch result {
             case .success(let data):
+                self.printPrettyJson(data: data)
                 completion(data.decodeResult())
             case .failure(let error):
                 completion(.failure(error))

@@ -15,7 +15,6 @@ class QuotesListTableViewCell: UITableViewCell {
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 6
-        imageView.backgroundColor = UIColor.secondarySystemBackground
         imageView.isHidden = true
         return imageView
     }()

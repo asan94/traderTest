@@ -56,7 +56,7 @@ class BaseAPI: NSObject {
         guard let url = components.url else { return nil }
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         if let body = body {
             request.httpBody = body
         }

@@ -9,6 +9,6 @@ import Foundation
 
 extension TraderAPI {
     enum Path: String {
-        case quotes = "/api"
+        case quotes = "/api/"
     }
 }
